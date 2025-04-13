@@ -25,6 +25,7 @@ class GameManager:
     weapon_strength = 0
     last_monster_strength = 0
     weapon_equipped = False
+    last_used_card = ""
     
     scoundrel_deck = ["2C", "2S", "2D", "2H", "3C", "3S", "3D", "3H", "4C", "4S", "4D", "4H", "5C", "5S", "5D", "5H", "6S", "6C", "6D", "6H", "7S", "7C", "7D", "7H", "8S", "8C", "8D", "8H", "9S", "9C", "9D", "9H", "TS", "TC", "TD", "TH", "JS", "JC", "QS", "QC", "KS", "KC", "AS", "AC"]
     endgame_deck = ["2C", "2S", "2D", "2H"]
@@ -49,11 +50,12 @@ class GameManager:
         self.room_avoided = False
         self.health_potion_consumed = False
 
+        self.last_used_card = ""
+
         self.deal_new_deck()
         self.new_room()
     def deal_new_deck(self):
         self.current_deck = self.scoundrel_deck.copy()
-        print(self.endgame_deck)
         random.shuffle(self.current_deck)
     def new_room(self):
         #Generates a new room from 4 cards from the deck
@@ -122,6 +124,8 @@ class GameManager:
             selected_card = input("Enter an action: ")
             self.process_user_input(selected_card)
     def card_selected(self, card):
+            self.room_active = True
+            self.last_used_card = card
         #user_acceptance = input("Are you sure you want to select card " + card + "? (Y to accept): ")
         #if user_acceptance == 'Y':
             self.current_room.remove(card)
@@ -205,7 +209,17 @@ class GameManager:
         for card in self.current_room:
             total_deck.append(card)
         if total_deck == []:
-            return self.player_health
+            if self.player_health == 20:
+                if self.last_used_card != "":
+                    last_card = list(self.last_used_card)
+                    if last_card[1] == 'H':
+                        return self.player_health + int(last_card[0])
+                    else:
+                        return self.player_health
+                else:
+                    return self.player_health
+            else:
+                return self.player_health
         else:
             total_score = 0
             for card in total_deck:
