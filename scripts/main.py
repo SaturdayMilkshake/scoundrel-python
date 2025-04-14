@@ -6,18 +6,31 @@ class SignalHandler:
     pass
 
 #Displays inital splash sceen on startup
-class SplashScreen:
-    pass
+class SplashScreen(tk.Frame):
+    def __init__(self, container, main):
+        tk.Frame.__init__(self, container)
 
 #Displays title screen
-class TitleScreen:
-    def __init__(self):
-        pass
+class TitleScreen(tk.Frame):
+    def __init__(self, container, main):
+        tk.Frame.__init__(self, container)
+        
+        scoundrel_title = tk.Label(self, text="Scoundrel", font=('Arial', 60, 'bold'))
+        scoundrel_title.place(x=50, y=100)
 
-#Displays game screen
-class GameScreen:
-    def __init__(self):
-        pass
+        play_button = tk.Button(self, text="Play", command=lambda: main.change_frame("GameScreen"))
+        play_button.place(x=150, y=500)
+
+        quit_button = tk.Button(self, text="Quit", command=main.destroy)
+        quit_button.place(x=150, y=550)
+
+        test_button = tk.Button(self, text="Test", command=lambda: print("Test"))
+        test_button.place(x=150, y=600)
+
+#Displays game screen and display
+class GameScreen(tk.Frame):
+    def __init__(self, container, main):
+        tk.Frame.__init__(self, container)
 
 #This class manages the gameplay
 class GameManager:
@@ -40,6 +53,7 @@ class GameManager:
     def __init__(self):
         pass
     def start_new_game(self):
+        print("---SCOUNDREL---")
         print("Starting new game!")
         self.player_health = 20
         self.weapon_strength = 0
@@ -49,6 +63,9 @@ class GameManager:
         self.room_active = False
         self.room_avoided = False
         self.health_potion_consumed = False
+
+        self.current_deck = []
+        self.current_room = []
 
         self.last_used_card = ""
 
@@ -252,40 +269,39 @@ class GameManager:
 #This class controls the program itself
 class ProgramManager(tk.Tk):
     def __init__(self):
+        tk.Tk.__init__(self)
+
+        self.geometry("1024x768")
+        self.resizable(width=False, height=False)
+        self.title("Scoundrel - A Rogue-like Card Game in Python")
+
+        self.config(background="white")
+
+        container = tk.Frame(self)
+        container.pack(side="top", fill="both", expand=True)
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+
+        self.frames = {}
+
+        #look, i tried to look for a better way, but tbh this is an elective project and i barely care about it
+        #i spent two more hours trying to look for a better method, not worth it 
+        for F in (SplashScreen, TitleScreen, GameScreen):
+            frame_name = F.__name__
+            frame = F(container=container, main=self)
+
+            self.frames[frame_name] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
+
+        self.change_frame("TitleScreen")
+    def change_frame(self, frame_name):
+        selected_frame = self.frames[frame_name]
+        selected_frame.tkraise()
+    def transition(self):
         pass
-    def change_screen():
-        pass
-    def quit_game():
-        pass
-
-def show_title_screen():
-    scoundrel_title = tk.Label(main, text="Scoundrel", font=('Arial', 60, 'bold'))
-    scoundrel_title.place(x=50, y=100)
-
-    play_button = tk.Button(main, text="Play")
-    play_button.place(x=150, y=500)
-
-    quit_button = tk.Button(main, text="Quit", command=main.destroy)
-    quit_button.place(x=150, y=550)
-
-def show_game_screen():
-    pass
-
-def initialize_game():
-    #Creates the main window
-    main.geometry("1024x768")
-    main.resizable(width=False, height=False)
-    main.title("Scoundrel - A Rogue-like Card Game in Python")
-
-    main.config(background="white")
-
-    show_title_screen()
-
-    main.mainloop()
 
 program_manager = ProgramManager()
-main = tk.Tk()
+program_manager.mainloop()
 
-initialize_game()
 game_manager = GameManager()
-game_manager.start_new_game()
+#game_manager.start_new_game()
