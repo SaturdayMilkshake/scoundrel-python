@@ -1,38 +1,28 @@
-import tkinter as tk
+import pygame as py
 import random
+
+py.init()
+
+main_window = py.display.set_mode((1024, 768))
+
+py.display.set_caption("Scoundrel")
 
 #Manages signals for the game, which uses the signal pattern
 class SignalHandler:
     pass
 
-#Displays inital splash sceen on startup
-class SplashScreen(tk.Frame):
-    def __init__(self, container, main):
-        tk.Frame.__init__(self, container)
+class SplashScreen:
+    pass
 
-#Displays title screen
-class TitleScreen(tk.Frame):
-    def __init__(self, container, main):
-        tk.Frame.__init__(self, container)
-        
-        scoundrel_title = tk.Label(self, text="Scoundrel", font=('Arial', 60, 'bold'))
-        scoundrel_title.place(x=50, y=100)
+class TitleScreen:
+    pass
 
-        play_button = tk.Button(self, text="Play", command=lambda: main.change_frame("GameScreen"))
-        play_button.place(x=150, y=500)
+class GameScreen:
+    pass
 
-        quit_button = tk.Button(self, text="Quit", command=main.destroy)
-        quit_button.place(x=150, y=550)
+#---Game Screen Classes---#
 
-        test_button = tk.Button(self, text="Test", command=lambda: print("Test"))
-        test_button.place(x=150, y=600)
-
-#Displays game screen and display
-class GameScreen(tk.Frame):
-    def __init__(self, container, main):
-        tk.Frame.__init__(self, container)
-
-#This class manages the gameplay
+#This class manages the gameplay (not gui)
 class GameManager:
     player_health = 20
     weapon_strength = 0
@@ -50,8 +40,6 @@ class GameManager:
     room_avoided = False
     health_potion_consumed = False
 
-    def __init__(self):
-        pass
     def start_new_game(self):
         print("---SCOUNDREL---")
         print("Starting new game!")
@@ -266,42 +254,54 @@ class GameManager:
                     continue
             return total_score
 
-#This class controls the program itself
-class ProgramManager(tk.Tk):
+class GameUIManager:
     def __init__(self):
-        tk.Tk.__init__(self)
+        pass
+    def draw_game_uis():
+        #deck
+        py.draw.rect(main_window, (255, 140, 200), py.Rect(32, 320, 150, 210))
+        #discard
+        py.draw.rect(main_window, (255, 140, 200), py.Rect(842, 320, 150, 210))
+        #room cards
+        py.draw.rect(main_window, (255, 0, 0), py.Rect(198, 192, 150, 210))
+        py.draw.rect(main_window, (255, 0, 0), py.Rect(357, 192, 150, 210))
+        py.draw.rect(main_window, (255, 0, 0), py.Rect(517, 192, 150, 210))
+        py.draw.rect(main_window, (255, 0, 0), py.Rect(676, 192, 150, 210))
+        #weapon card
+        py.draw.rect(main_window, (255, 0, 255), py.Rect(437, 526, 150, 210))
 
-        self.geometry("1024x768")
-        self.resizable(width=False, height=False)
-        self.title("Scoundrel - A Rogue-like Card Game in Python")
-
-        self.config(background="white")
-
-        container = tk.Frame(self)
-        container.pack(side="top", fill="both", expand=True)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
-
-        self.frames = {}
-
-        #look, i tried to look for a better way, but tbh this is an elective project and i barely care about it
-        #i spent two more hours trying to look for a better method, not worth it 
-        for F in (SplashScreen, TitleScreen, GameScreen):
-            frame_name = F.__name__
-            frame = F(container=container, main=self)
-
-            self.frames[frame_name] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
-
-        self.change_frame("TitleScreen")
-    def change_frame(self, frame_name):
-        selected_frame = self.frames[frame_name]
-        selected_frame.tkraise()
-    def transition(self):
+#Game Objects
+class GameDeck():
+    def __init__(self):
         pass
 
-program_manager = ProgramManager()
-program_manager.mainloop()
+class RoomCard():
+    current_card = ""
+    def __init__(self):
+        pass
 
-game_manager = GameManager()
-#game_manager.start_new_game()
+class WeaponCard():
+    def __init__(self):
+        pass
+
+class DiscardDeck():
+    def __init__(self):
+        pass
+
+class ProgramManager:
+    def __init__(self):
+        pass
+    def process_user_input(inputs):
+        pass
+
+program_active = True
+
+while program_active:
+    for event in py.event.get():
+        if event.type == py.QUIT:
+            program_active = False
+
+    GameUIManager.draw_game_uis()
+    ProgramManager.process_user_input(py.key.get_pressed())
+
+    py.display.update()
