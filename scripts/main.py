@@ -1,5 +1,6 @@
 import pygame as py
 import random
+import time
 
 py.init()
 
@@ -107,7 +108,7 @@ class GameManager:
                 print("Final score: " + str(self.compute_final_score()))
                 user_acceptance = input("Play again? (Y to accept): ")
                 if user_acceptance == 'Y':
-                    game_manager.start_new_game()
+                    self.start_new_game()
                 else:
                     pass
             else:
@@ -255,20 +256,64 @@ class GameManager:
             return total_score
 
 class GameUIManager:
+    card_image_paths = {
+        "2C": "",
+    }
     def __init__(self):
-        pass
-    def draw_game_uis():
+        self.room_card_1 = RoomCard([198, 192])
+        self.room_card_2 = RoomCard([357, 192])
+        self.room_card_3 = RoomCard([517, 192])
+        self.room_card_4 = RoomCard([676, 192])
+        self.run_room_button = RunRoom([858, 208])
+        self.object_index = 0
+        self.selectable_objects = [self.room_card_1, self.room_card_2, self.room_card_3, self.room_card_4, self.run_room_button]
+        self.selected_object = self.selectable_objects[self.object_index]
+        self.previous_selected_object = None
+        self.room_card_1.set_hover_status(True)
+        self.room_card_1.set_card_image()
+        self.room_card_2.set_card_image()
+        self.room_card_3.set_card_image()
+        self.room_card_4.set_card_image()
+    def draw_game_uis(self):
         #deck
         py.draw.rect(main_window, (255, 140, 200), py.Rect(32, 320, 150, 210))
         #discard
         py.draw.rect(main_window, (255, 140, 200), py.Rect(842, 320, 150, 210))
-        #room cards
-        py.draw.rect(main_window, (255, 0, 0), py.Rect(198, 192, 150, 210))
-        py.draw.rect(main_window, (255, 0, 0), py.Rect(357, 192, 150, 210))
-        py.draw.rect(main_window, (255, 0, 0), py.Rect(517, 192, 150, 210))
-        py.draw.rect(main_window, (255, 0, 0), py.Rect(676, 192, 150, 210))
         #weapon card
         py.draw.rect(main_window, (255, 0, 255), py.Rect(437, 526, 150, 210))
+
+        #what the hell is this
+        self.room_card_1.display_card_image()
+        self.room_card_2.display_card_image()
+        self.room_card_3.display_card_image()
+        self.room_card_4.display_card_image()
+        self.run_room_button.display_image()
+
+        if hasattr(self.selected_object, "set_hover_status"):
+            self.selected_object.set_hover_status(True)
+        
+        if hasattr(self.previous_selected_object, "set_hover_status"):
+            self.previous_selected_object.set_hover_status(False)
+
+    def update_object_index(self, modifier):
+        self.object_index += modifier
+        if self.object_index >= len(self.selectable_objects) or self.object_index <= -len(self.selectable_objects):
+            self.object_index = self.object_index % len(self.selectable_objects)
+        self.previous_selected_object = self.selected_object
+
+        self.selected_object = self.selectable_objects[self.object_index]
+        while self.selected_object.selection_disabled:
+            self.object_index += modifier
+            if self.object_index >= len(self.selectable_objects) or self.object_index <= -len(self.selectable_objects):
+                self.object_index = self.object_index % len(self.selectable_objects)
+            self.selected_object = self.selectable_objects[self.object_index]
+        
+        if hasattr(self.selected_object, "set_card_image"):
+            self.selected_object.set_card_image()
+        
+    def object_selected(self):
+        if hasattr(self.selected_object, "selected"):
+            self.selected_object.selected()
 
 #Game Objects
 class GameDeck():
@@ -276,32 +321,104 @@ class GameDeck():
         pass
 
 class RoomCard():
-    current_card = ""
-    def __init__(self):
-        pass
+    current_card = "test"
+    selection_disabled = False
+    current_image = None
+    card_position = [0, 0]
+    #where the selected card will stop hovering to
+    y_offset = 172
+    fade_out_y_offset = 132
+    def __init__(self, position):
+        self.card_position = position
+    def reset_position(self):
+        self.card_position = [self.card_position[1], 192]
+    def set_hover_status(self, status):
+        #i know i shouldn't put magic numbers but tbh this is an elective project and i want this done already
+        #who cares? it's not like they will do an actually detailed code review
+        #the rest of the program is already so messy anyway
+        if status:
+            if self.card_position[1] > self.y_offset:
+                self.card_position[1] -= 1
+            else:
+                if self.current_card == "":
+                    self.current_image = None
+        else:
+            if self.card_position[1] < 192:
+                self.card_position[1] += 1
+            else:
+                pass
+    def set_card_image(self):
+        self.current_image = py.image.load("assets/test_card.png")
+    def display_card_image(self):
+        if self.current_image != None:
+            main_window.blit(self.current_image, self.card_position)
+    def selected(self):
+        self.y_offset = self.fade_out_y_offset
+        self.current_card = ""
+        self.selection_disabled = True
 
 class WeaponCard():
     def __init__(self):
         pass
 
+class RunRoom():
+    image_position = [0, 0]
+    selection_disabled = False
+    y_offset = 183
+    current_image = py.image.load("assets/textures/run_room.png")
+    def __init__(self, position):
+        self.image_position = position
+    def set_hover_status(self, status):
+        if status:
+            if self.image_position[1] > self.y_offset:
+                self.image_position[1] -= 1
+            else:
+                pass
+        else:
+            if self.image_position[1] < 192:
+                self.image_position[1] += 1
+            else:
+                pass
+    def display_image(self):
+        main_window.blit(self.current_image, self.image_position)
+    def selected(self):
+        self.set_hover_status(False)
+
 class DiscardDeck():
     def __init__(self):
         pass
 
-class ProgramManager:
+class ProgramManager():
+    just_pressed = False
     def __init__(self):
         pass
-    def process_user_input(inputs):
-        pass
+    def process_user_input(self, inputs):
+        if not self.just_pressed:
+            if inputs[py.K_LEFT]:
+                game_ui_manager.update_object_index(-1)
+                self.just_pressed = True
+            elif inputs[py.K_RIGHT]:
+                game_ui_manager.update_object_index(1)
+                self.just_pressed = True
+            elif inputs[py.K_SPACE]:
+                game_ui_manager.object_selected()
+                self.just_pressed = True
 
 program_active = True
 
+program_manager = ProgramManager()
+game_ui_manager = GameUIManager()
+
 while program_active:
     for event in py.event.get():
+        if event.type == py.KEYUP:
+            program_manager.just_pressed = False
         if event.type == py.QUIT:
             program_active = False
 
-    GameUIManager.draw_game_uis()
-    ProgramManager.process_user_input(py.key.get_pressed())
+    main_window.fill(0)
+
+    game_ui_manager.draw_game_uis()
+    program_manager.process_user_input(py.key.get_pressed())
 
     py.display.update()
