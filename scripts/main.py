@@ -1,6 +1,6 @@
 import pygame as py
 import random
-import time
+import os
 
 py.init()
 
@@ -68,6 +68,7 @@ class GameManager:
         for x in range(4):
             card = self.current_deck.pop(0)
             self.current_room.append(card)
+        game_ui_manager.set_new_room_images(self.current_room)
         self.show_current_room()
     def run_room(self):
         if self.room_avoided:
@@ -100,8 +101,8 @@ class GameManager:
                 self.show_current_room()
             else:
                 print("Current room: " + str(self.current_room) + ", " + str(len(self.current_deck)) + " cards in the deck. Health: " + str(self.player_health) + ". Weapon strength: " + str(self.weapon_strength) + ". Last monster strength: " + str(self.last_monster_strength) + ".")
-                selected_card = input("Input an action: ")
-                self.process_user_input(selected_card)
+                #selected_card = input("Input an action: ")
+                #self.process_user_input(selected_card)
         else:
             if self.current_room == []:
                 print("Dungeon cleared! You win!")
@@ -257,7 +258,50 @@ class GameManager:
 
 class GameUIManager:
     card_image_paths = {
-        "2C": "",
+        "2C": "assets/textures/clubs/2C.png",
+        "2S": "assets/textures/spades/2S.png",
+        "2D": "assets/textures/diamonds/2D.png",
+        "2H": "assets/textures/hearts/2H.png",
+        "3C": "assets/textures/clubs/3C.png",
+        "3S": "assets/textures/spades/3S.png",
+        "3D": "assets/textures/diamonds/3D.png",
+        "3H": "assets/textures/hearts/3H.png",
+        "4C": "assets/textures/clubs/4C.png",
+        "4S": "assets/textures/spades/4S.png",
+        "4D": "assets/textures/diamonds/4D.png",
+        "4H": "assets/textures/hearts/4H.png",
+        "5C": "assets/textures/clubs/5C.png",
+        "5S": "assets/textures/spades/5S.png",
+        "5D": "assets/textures/diamonds/5D.png",
+        "5H": "assets/textures/hearts/5H.png",
+        "6C": "assets/textures/clubs/6C.png",
+        "6S": "assets/textures/spades/6S.png",
+        "6D": "assets/textures/diamonds/6D.png",
+        "6H": "assets/textures/hearts/6H.png",
+        "7C": "assets/textures/clubs/7C.png",
+        "7S": "assets/textures/spades/7S.png",
+        "7D": "assets/textures/diamonds/7D.png",
+        "7H": "assets/textures/hearts/7H.png",
+        "8C": "assets/textures/clubs/8C.png",
+        "8S": "assets/textures/spades/8S.png",
+        "8D": "assets/textures/diamonds/8D.png",
+        "8H": "assets/textures/hearts/8H.png",
+        "9C": "assets/textures/clubs/9C.png",
+        "9S": "assets/textures/spades/9S.png",
+        "9D": "assets/textures/diamonds/9D.png",
+        "9H": "assets/textures/hearts/9H.png",
+        "TC": "assets/textures/clubs/TC.png",
+        "TS": "assets/textures/spades/TS.png",
+        "TD": "assets/textures/diamonds/TD.png",
+        "TH": "assets/textures/hearts/TH.png",
+        "JC": "assets/textures/clubs/JC.png",
+        "JS": "assets/textures/spades/JS.png",
+        "QC": "assets/textures/clubs/QC.png",
+        "QS": "assets/textures/spades/QS.png",
+        "KC": "assets/textures/clubs/KC.png",
+        "KS": "assets/textures/spades/KS.png",
+        "AC": "assets/textures/clubs/AC.png",
+        "AS": "assets/textures/spades/AS.png",
     }
     def __init__(self):
         self.room_card_1 = RoomCard([198, 192])
@@ -293,7 +337,10 @@ class GameUIManager:
             self.selected_object.set_hover_status(True)
         
         if hasattr(self.previous_selected_object, "set_hover_status"):
-            self.previous_selected_object.set_hover_status(False)
+            if not self.previous_selected_object.selection_disabled:
+                self.previous_selected_object.set_hover_status(False)
+            else:
+                self.previous_selected_object.set_hover_status(True)
 
     def update_object_index(self, modifier):
         self.object_index += modifier
@@ -315,9 +362,26 @@ class GameUIManager:
         if hasattr(self.selected_object, "selected"):
             self.selected_object.selected()
 
+    #functions that the game manager will actually use
+    def hide_all_cards(self):
+        pass
+    def set_new_room_images(self, cards):
+        print(cards)
+        self.room_card_1.current_card = cards[0]
+        self.room_card_2.current_card = cards[1]
+        self.room_card_3.current_card = cards[2]
+        self.room_card_4.current_card = cards[3]
+
+        self.room_card_1.set_card_image()
+        self.room_card_2.set_card_image()
+        self.room_card_3.set_card_image()
+        self.room_card_4.set_card_image()
+
 #Game Objects
 class GameDeck():
     def __init__(self):
+        pass
+    def display_image(self):
         pass
 
 class RoomCard():
@@ -327,7 +391,7 @@ class RoomCard():
     card_position = [0, 0]
     #where the selected card will stop hovering to
     y_offset = 172
-    fade_out_y_offset = 132
+    fade_out_y_offset = 102
     def __init__(self, position):
         self.card_position = position
     def reset_position(self):
@@ -348,7 +412,13 @@ class RoomCard():
             else:
                 pass
     def set_card_image(self):
-        self.current_image = py.image.load("assets/test_card.png")
+        if self.current_card in GameUIManager.card_image_paths:
+            if os.path.exists(GameUIManager.card_image_paths[self.current_card]):
+                self.current_image = py.image.load(GameUIManager.card_image_paths[self.current_card])
+            else:
+                self.current_image = py.image.load("assets/textures/back_card.png")
+        else:
+            self.current_image = py.image.load("assets/textures/back_card.png")
     def display_card_image(self):
         if self.current_image != None:
             main_window.blit(self.current_image, self.card_position)
@@ -408,6 +478,9 @@ program_active = True
 
 program_manager = ProgramManager()
 game_ui_manager = GameUIManager()
+game_manager = GameManager()
+
+game_manager.start_new_game()
 
 while program_active:
     for event in py.event.get():
