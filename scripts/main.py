@@ -32,7 +32,7 @@ class GameManager:
     last_used_card = ""
     
     scoundrel_deck = ["2C", "2S", "2D", "2H", "3C", "3S", "3D", "3H", "4C", "4S", "4D", "4H", "5C", "5S", "5D", "5H", "6S", "6C", "6D", "6H", "7S", "7C", "7D", "7H", "8S", "8C", "8D", "8H", "9S", "9C", "9D", "9H", "TS", "TC", "TD", "TH", "JS", "JC", "QS", "QC", "KS", "KC", "AS", "AC"]
-    endgame_deck = ["2C", "2S", "2D", "2H", "3C"]
+    endgame_deck = ["2C", "2S", "2D", "2H"]
     current_deck = []
     current_room = []
 
@@ -65,9 +65,10 @@ class GameManager:
         random.shuffle(self.current_deck)
     def new_room(self):
         #Generates a new room from 4 cards from the deck
-        for x in range(4):
-            card = self.current_deck.pop(0)
-            self.current_room.append(card)
+        if self.current_deck != []:
+            for x in range(4):
+                card = self.current_deck.pop(0)
+                self.current_room.append(card)
         game_ui_manager.set_new_room_images(self.current_room)
         if self.room_avoided:
             game_ui_manager.run_room_button.selection_disabled = True
@@ -101,6 +102,7 @@ class GameManager:
                         break
                 game_ui_manager.set_new_room_images(self.current_room)
                 game_ui_manager.run_room_button.selection_disabled = False
+                game_ui_manager.update_object_index(1)
                 self.room_avoided = False
                 self.health_potion_consumed = False
                 self.room_active = False
@@ -114,13 +116,15 @@ class GameManager:
             if self.current_room == []:
                 print("Dungeon cleared! You win!")
                 print("Final score: " + str(self.compute_final_score()))
-                user_acceptance = input("Play again? (Y to accept): ")
-                if user_acceptance == 'Y':
-                    self.start_new_game()
-                else:
-                    pass
+                #user_acceptance = input("Play again? (Y to accept): ")
+                #if user_acceptance == 'Y':
+                #    self.start_new_game()
+                #else:
+                #    pass
             else:
+                game_ui_manager.run_room_button.selection_disabled = True
                 print("Current room: " + str(self.current_room) + ", " + str(len(self.current_deck)) + " cards in the deck. Health: " + str(self.player_health) + ". Weapon strength: " + str(self.weapon_strength) + ". Last monster strength: " + str(self.last_monster_strength) + ".")
+                print("last card!")
                 #selected_card = input("Input an action: ")
                 #self.process_user_input(selected_card)
     def process_user_input(self, user_input):
@@ -330,6 +334,15 @@ class GameUIManager:
         self.room_card_3.set_card_image()
         self.room_card_4.set_card_image()
     def draw_game_uis(self):
+        #game text
+        py.draw.rect(main_window, (255, 140, 200), (198, 418, 628, 92))
+
+        #health bar
+        py.draw.rect(main_window, (255, 0, 0), (198, 478, 628, 32))
+
+        #game title
+        py.draw.rect(main_window, (255, 255, 0), (273, 16, 478, 86))
+
         #what the hell is this
         self.room_card_1.display_card_image()
         self.room_card_2.display_card_image()
@@ -378,26 +391,40 @@ class GameUIManager:
         self.room_card_2.set_hover_status(False)
         self.room_card_3.set_hover_status(False)
         self.room_card_4.set_hover_status(False)
+
+        self.room_card_1.reset_card_image()
+        self.room_card_2.reset_card_image()
+        self.room_card_3.reset_card_image()
+        self.room_card_4.reset_card_image()
+
+        self.room_card_1.selection_disabled = True
+        self.room_card_2.selection_disabled = True
+        self.room_card_3.selection_disabled = True
+        self.room_card_4.selection_disabled = True
         
-        self.room_card_1.current_card = cards[0]
-        self.room_card_2.current_card = cards[1]
-        self.room_card_3.current_card = cards[2]
-        self.room_card_4.current_card = cards[3]
-
-        self.room_card_1.set_card_image()
-        self.room_card_2.set_card_image()
-        self.room_card_3.set_card_image()
-        self.room_card_4.set_card_image()
-
-        self.room_card_1.reset_position()
-        self.room_card_2.reset_position()
-        self.room_card_3.reset_position()
-        self.room_card_4.reset_position()
-
-        self.room_card_1.selection_disabled = False
-        self.room_card_2.selection_disabled = False
-        self.room_card_3.selection_disabled = False
-        self.room_card_4.selection_disabled = False
+        #best implementation ever 10/10
+        print(cards, len(cards))
+        if len(cards) >= 1:
+            self.room_card_1.current_card = cards[0]
+            self.room_card_1.set_card_image()
+            self.room_card_1.reset_position()
+            self.room_card_1.selection_disabled = False
+        if len(cards) >= 2:
+            self.room_card_2.current_card = cards[1]
+            self.room_card_2.set_card_image()
+            self.room_card_2.reset_position()
+            self.room_card_2.selection_disabled = False
+        if len(cards) >= 3:
+            self.room_card_3.current_card = cards[2]
+            self.room_card_3.set_card_image()
+            self.room_card_3.reset_position()
+            self.room_card_3.selection_disabled = False
+        if len(cards) >= 4:
+            self.room_card_4.current_card = cards[3]
+            self.room_card_4.set_card_image()
+            self.room_card_4.reset_position()
+            self.room_card_4.selection_disabled = False
+        
 
 #Game Objects
 class GameDeck():
@@ -416,7 +443,7 @@ class RoomCard():
     card_position = [0, 0]
     #where the selected card will stop hovering to
     y_offset = 172
-    fade_out_y_offset = 102
+    fade_out_y_offset = 110
     def __init__(self, position):
         self.card_position = position
     def reset_position(self):
@@ -445,15 +472,17 @@ class RoomCard():
                 self.current_image = py.image.load("assets/textures/back_card.png")
         else:
             self.current_image = py.image.load("assets/textures/back_card.png")
+    def reset_card_image(self):
+        self.current_image = None
     def display_card_image(self):
         if self.current_image != None:
             main_window.blit(self.current_image, self.card_position)
     def selected(self):
-        self.y_offset = self.fade_out_y_offset
         self.selection_disabled = True
+        self.y_offset = self.fade_out_y_offset
         game_ui_manager.run_room_button.selection_disabled = True
-        game_ui_manager.update_object_index(1)
         game_manager.process_user_input(self.current_card)
+        game_ui_manager.update_object_index(1)
 
 class WeaponCard():
     current_card = ""
@@ -519,6 +548,8 @@ class ProgramManager():
                 game_ui_manager.object_selected()
                 self.just_pressed = True
 
+
+py.init()
 program_active = True
 
 program_manager = ProgramManager()
